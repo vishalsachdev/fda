@@ -1028,11 +1028,27 @@
       const filtered = filterData();
       const filteredNoYear = filterData({ includeYear: false });
       renderMetrics(filtered);
+      renderTable(filtered);
       drawYearBars(filteredNoYear);
       drawPanelBars(filtered);
       drawEntrants(filteredNoYear);
       drawHeatmap(filtered);
-      renderTable(filtered);
+    };
+
+    const applyFilters = () => {
+      const start = Number(elements.yearStart.value);
+      const end = Number(elements.yearEnd.value);
+      state.yearStart = Number.isFinite(start) ? start : minYear;
+      state.yearEnd = Number.isFinite(end) ? end : maxYear;
+      if (state.yearStart > state.yearEnd) {
+        const temp = state.yearStart;
+        state.yearStart = state.yearEnd;
+        state.yearEnd = temp;
+      }
+      state.panel = elements.panelSelect.value || 'All panels';
+      state.search = elements.searchInput.value || '';
+      syncControls();
+      renderAll();
     };
 
     const setupControls = () => {
@@ -1048,36 +1064,19 @@
         elements.panelSelect.appendChild(option);
       });
 
-      elements.yearStart.addEventListener('change', () => {
-        const value = Number(elements.yearStart.value);
-        state.yearStart = Math.min(value, state.yearEnd);
-        if (state.yearStart > state.yearEnd) state.yearEnd = state.yearStart;
-        elements.yearStart.value = state.yearStart;
-        elements.yearEnd.value = state.yearEnd;
-        renderAll();
-      });
+      elements.yearStart.addEventListener('change', applyFilters);
+      elements.yearStart.addEventListener('input', applyFilters);
 
-      elements.yearEnd.addEventListener('change', () => {
-        const value = Number(elements.yearEnd.value);
-        state.yearEnd = Math.max(value, state.yearStart);
-        if (state.yearEnd < state.yearStart) state.yearStart = state.yearEnd;
-        elements.yearStart.value = state.yearStart;
-        elements.yearEnd.value = state.yearEnd;
-        renderAll();
-      });
+      elements.yearEnd.addEventListener('change', applyFilters);
+      elements.yearEnd.addEventListener('input', applyFilters);
 
-      elements.panelSelect.addEventListener('change', () => {
-        state.panel = elements.panelSelect.value;
-        renderAll();
-      });
+      elements.panelSelect.addEventListener('change', applyFilters);
+      elements.panelSelect.addEventListener('input', applyFilters);
 
       let searchTimer;
       elements.searchInput.addEventListener('input', () => {
         clearTimeout(searchTimer);
-        searchTimer = setTimeout(() => {
-          state.search = elements.searchInput.value;
-          renderAll();
-        }, 200);
+        searchTimer = setTimeout(applyFilters, 200);
       });
 
       elements.reset.addEventListener('click', () => {
