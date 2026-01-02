@@ -163,11 +163,6 @@
       color: var(--muted);
     }
 
-    input[type="range"] {
-      width: 100%;
-      accent-color: var(--accent);
-    }
-
     input[type="text"], select {
       padding: 8px 10px;
       border-radius: 10px;
@@ -175,6 +170,21 @@
       background: #fffdf7;
       font-size: 0.95rem;
       min-width: 180px;
+    }
+
+    .year-range {
+      gap: 8px;
+    }
+
+    .year-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted-2);
+    }
+
+    .year-select {
+      min-width: 110px;
     }
 
     button.reset {
@@ -421,9 +431,11 @@
           <div class="control-row">
             <label><strong>Year range</strong> <span id="year-range-label"></span></label>
           </div>
-          <div class="control-row">
-            <input id="year-start" type="range" />
-            <input id="year-end" type="range" />
+          <div class="control-row year-range">
+            <label class="year-label" for="year-start">From</label>
+            <select id="year-start" class="year-select"></select>
+            <label class="year-label" for="year-end">To</label>
+            <select id="year-end" class="year-select"></select>
           </div>
           <div class="control-row">
             <label for="panel-select">Panel filter</label>
@@ -647,6 +659,16 @@
       svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
       container.appendChild(svg);
       return { svg, width, height };
+    };
+
+    const buildYearOptions = (select) => {
+      clearElement(select);
+      allYears.forEach((year) => {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+        select.appendChild(option);
+      });
     };
 
     const drawYearBars = (items) => {
@@ -1014,11 +1036,9 @@
     };
 
     const setupControls = () => {
-      elements.yearStart.min = minYear;
-      elements.yearStart.max = maxYear;
+      buildYearOptions(elements.yearStart);
+      buildYearOptions(elements.yearEnd);
       elements.yearStart.value = state.yearStart;
-      elements.yearEnd.min = minYear;
-      elements.yearEnd.max = maxYear;
       elements.yearEnd.value = state.yearEnd;
 
       panelList.forEach((panel) => {
@@ -1028,7 +1048,7 @@
         elements.panelSelect.appendChild(option);
       });
 
-      elements.yearStart.addEventListener('input', () => {
+      elements.yearStart.addEventListener('change', () => {
         const value = Number(elements.yearStart.value);
         state.yearStart = Math.min(value, state.yearEnd);
         if (state.yearStart > state.yearEnd) state.yearEnd = state.yearStart;
@@ -1037,7 +1057,7 @@
         renderAll();
       });
 
-      elements.yearEnd.addEventListener('input', () => {
+      elements.yearEnd.addEventListener('change', () => {
         const value = Number(elements.yearEnd.value);
         state.yearEnd = Math.max(value, state.yearStart);
         if (state.yearEnd < state.yearStart) state.yearStart = state.yearEnd;
