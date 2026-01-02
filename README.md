@@ -46,7 +46,7 @@ No build step required.
 3. Commit and push to redeploy via GitHub Pages.
 
 ## Automation
-- GitHub Actions runs a weekly refresh (Monday 14:00 UTC) and can be run manually via the Actions tab.
+- GitHub Actions runs a monthly refresh (day 1 at 14:00 UTC) and can be run manually via the Actions tab.
 - The workflow downloads the FDA XML, updates the enriched JSON and dashboard embed, then commits changes back to `main`.
 
 ## GitHub Pages
