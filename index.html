@@ -229,7 +229,7 @@
       margin: 0;
     }
 
-    .card p.caption {
+    .caption {
       margin: 0;
       font-size: 0.9rem;
       color: var(--muted);
@@ -305,7 +305,7 @@
       text-decoration: none;
     }
 
-    .methodology {
+    .info-card {
       background: var(--card);
       border: 1px solid var(--card-edge);
       border-radius: 20px;
@@ -313,7 +313,7 @@
       box-shadow: var(--shadow);
     }
 
-    .methodology h3 {
+    .info-card h3 {
       margin: 0 0 8px 0;
       font-family: var(--font-display);
     }
@@ -413,7 +413,18 @@
       </div>
     </header>
 
-    <section class="controls fade-up" style="animation-delay: 140ms;">
+    <section class="info-card summary fade-up" style="animation-delay: 120ms;">
+      <h3>What this dashboard shows</h3>
+      <p class="caption">Each row is an FDA-posted AI/ML-enabled device entry with a final decision date, panel, and product code. The view focuses on 2016 onward to highlight the recent acceleration.</p>
+      <ul>
+        <li>Filters update every chart and the device list, so you can isolate panels, years, or specific companies.</li>
+        <li>Approvals per year reflect the volume of FDA list entries, not unique device families.</li>
+        <li>New entrants track first-time appearances of companies and product codes within this dataset.</li>
+        <li>Submission numbers link directly to the FDA record for each device.</li>
+      </ul>
+    </section>
+
+    <section class="controls fade-up" style="animation-delay: 160ms;">
       <div class="control-card">
         <div class="control-group">
           <div class="control-row">
@@ -446,7 +457,7 @@
       </div>
     </section>
 
-    <section class="metrics-section fade-up" style="animation-delay: 200ms;">
+    <section class="metrics-section fade-up" style="animation-delay: 220ms;">
       <p class="eyebrow">Filtered snapshot</p>
       <div class="metrics">
         <div class="metric">
@@ -469,17 +480,17 @@
     </section>
 
     <section class="grid">
-      <article class="card fade-up" style="animation-delay: 220ms;">
+      <article class="card fade-up" style="animation-delay: 260ms;">
         <h2>Approvals per year</h2>
         <p class="caption">Bars show approvals by year after panel/search filters. The highlight indicates the selected year range.</p>
         <div id="chart-years" class="chart"></div>
       </article>
-      <article class="card fade-up" style="animation-delay: 300ms;">
+      <article class="card fade-up" style="animation-delay: 340ms;">
         <h2>Panel mix</h2>
         <p class="caption">Which medical panels dominate the approvals in the selected range? Click a bar to focus.</p>
         <div id="chart-panels" class="chart"></div>
       </article>
-      <article class="card fade-up" style="animation-delay: 380ms;">
+      <article class="card fade-up" style="animation-delay: 420ms;">
         <h2>New entrants</h2>
         <p class="caption">First-time appearances of companies and product codes per year.</p>
         <div class="legend">
@@ -488,14 +499,14 @@
         </div>
         <div id="chart-entrants" class="chart"></div>
       </article>
-      <article class="card fade-up" style="animation-delay: 460ms;">
+      <article class="card fade-up" style="animation-delay: 500ms;">
         <h2>Panel x product code</h2>
         <p class="caption">Heatmap of top product codes across top panels (within the selected range).</p>
         <div id="chart-heatmap" class="chart"></div>
       </article>
     </section>
 
-    <section class="table-section fade-up" style="animation-delay: 540ms;">
+    <section class="table-section fade-up" style="animation-delay: 580ms;">
       <div class="table-meta">
         <div>
           <h2 style="margin: 0; font-family: var(--font-display);">Device list</h2>
@@ -522,7 +533,7 @@
       </div>
     </section>
 
-    <section class="methodology fade-up" style="animation-delay: 620ms;">
+    <section class="info-card methodology fade-up" style="animation-delay: 660ms;">
       <h3>Methodology and notes</h3>
       <ul>
         <li>Data source: FDA AI/ML-Enabled Medical Devices list (downloaded as XML and parsed into structured fields).</li>
@@ -531,6 +542,18 @@
         <li>"New entrants" counts capture the first appearance year of a company or product code within the dataset.</li>
         <li>Filtering by panel/search updates all charts except the yearly bar chart range highlight.</li>
         <li>Future enrichment ideas: add clearance type, device class, modality/task taxonomy, and geographic metadata.</li>
+      </ul>
+    </section>
+
+    <section class="info-card glossary fade-up" style="animation-delay: 700ms;">
+      <h3>Glossary</h3>
+      <ul>
+        <li>Approval (entry): A single row from the FDA AI/ML list with a final decision date.</li>
+        <li>Panel: The FDA medical specialty review panel associated with the device.</li>
+        <li>Product code: FDA classification code that describes the device type.</li>
+        <li>Submission number: The FDA identifier (K, P, or DEN prefix) linking to the official record.</li>
+        <li>New entrant: A company or product code appearing for the first time in this dataset.</li>
+        <li>Device and company: Names as listed on the FDA source page.</li>
       </ul>
     </section>
   </div>
