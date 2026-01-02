@@ -157,6 +157,31 @@ def save_cache(path, cache):
         json.dump(cache, handle, indent=2, ensure_ascii=False)
 
 
+def update_index_html(index_path, data):
+    path = Path(index_path)
+    content = path.read_text(encoding="utf-8")
+    data_json = json.dumps(data, ensure_ascii=False)
+    new_content, count = re.subn(
+        r"const rawData = \[.*?\];",
+        f"const rawData = {data_json};",
+        content,
+        flags=re.S,
+    )
+    if count != 1:
+        raise RuntimeError("Unable to locate rawData block in index.html")
+    if new_content != content:
+        path.write_text(new_content, encoding="utf-8")
+
+
+def write_json(path, data):
+    output_path = Path(path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(
+        json.dumps(data, indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+
 def ensure_pdf(url, pdf_path, force=False):
     if pdf_path.exists() and not force:
         return
@@ -195,6 +220,7 @@ def extract_with_pypdf(pdf_path, text_path):
         extracted = page.extract_text() or ""
         chunks.append(extracted)
     text = "\n\n".join(chunks).strip()
+    text_path.parent.mkdir(parents=True, exist_ok=True)
     text_path.write_text(text, encoding="utf-8")
     return True
 
@@ -220,11 +246,16 @@ def main():
     parser.add_argument("--force", action="store_true")
     parser.add_argument("--all", action="store_true")
     parser.add_argument("--throttle", type=float, default=0.4)
+    parser.add_argument("--update-data", action="store_true")
 
     args = parser.parse_args()
 
     records = load_records(args.input_json, args.index_html)
     cache = load_cache(args.cache)
+    Path(args.pdf_dir).mkdir(parents=True, exist_ok=True)
+    Path(args.text_dir).mkdir(parents=True, exist_ok=True)
+    for record in records:
+        record.setdefault("summary_url", "")
 
     processed = 0
     for record in records:
@@ -238,6 +269,7 @@ def main():
 
         cache_entry = cache.get(submission_id, {})
         summary_links = cache_entry.get("summary_links")
+        summary_url = cache_entry.get("summary_url")
 
         if not summary_links or args.force:
             try:
@@ -249,12 +281,20 @@ def main():
 
             candidates = find_summary_pdfs(html, submission_url)
             summary_links = [item["url"] for item in candidates]
-            cache[submission_id] = {"summary_links": summary_links}
+            summary_url = summary_links[0] if summary_links else ""
+            cache[submission_id] = {
+                "summary_links": summary_links,
+                "summary_url": summary_url,
+            }
             save_cache(args.cache, cache)
             time.sleep(args.throttle)
+        elif summary_url is None and summary_links:
+            summary_url = summary_links[0]
 
         if not summary_links:
             continue
+        if summary_url:
+            record["summary_url"] = summary_url
 
         to_download = summary_links if args.all else summary_links[:1]
 
@@ -277,6 +317,10 @@ def main():
             time.sleep(args.throttle)
 
         processed += 1
+
+    if args.update_data:
+        write_json(args.input_json, records)
+        update_index_html(args.index_html, records)
 
 
 if __name__ == "__main__":

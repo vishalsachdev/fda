@@ -220,6 +220,7 @@ def parse_xml_rows(xml_bytes):
                 "code": code,
                 "submission_id": submission_id,
                 "submission_url": submission_url,
+                "summary_url": "",
                 "received_date": "",
                 "decision_date_openfda": "",
                 "days_to_decision": None,
