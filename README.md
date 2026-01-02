@@ -38,12 +38,18 @@ No build step required.
 - `ai-ml-enabled-devices-xml.xml`: Raw source data download from FDA.
 - `data/ai-ml-enabled-devices-enriched.json`: Parsed and enriched dataset.
 - `scripts/update_data.py`: Fetches, parses, enriches, and refreshes the dashboard data.
+- `scripts/extract_summaries.py`: Downloads summary PDFs and extracts text (stored locally, gitignored).
 - `.github/workflows/update-data.yml`: Scheduled updater workflow.
 
 ## Updating the data
 1. Run `python scripts/update_data.py`.
 2. The script downloads the XML, refreshes `ai-ml-enabled-devices-xml.xml`, rebuilds the embedded JSON in `index.html`, and writes `data/ai-ml-enabled-devices-enriched.json`.
 3. Commit and push to redeploy via GitHub Pages.
+
+## Summary text extraction (local, gitignored)
+1. Install a PDF text extractor: `pdftotext` (Poppler) is preferred; `pypdf` also works for many PDFs.
+2. Run `python scripts/extract_summaries.py`.
+3. Extracted PDFs and text land in `data/summary-pdfs/` and `data/summary-text/` (both gitignored).
 
 ## Automation
 - GitHub Actions runs a monthly refresh (day 1 at 14:00 UTC) and can be run manually via the Actions tab.

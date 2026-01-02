@@ -1,0 +1,6 @@
+.DS_Store
+
+# Local text extraction artifacts
+/data/summary-pdfs/
+/data/summary-text/
+/data/summary-cache.json
