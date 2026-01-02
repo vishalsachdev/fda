@@ -267,6 +267,28 @@
       padding: 8px 6px;
     }
 
+    .sort-button {
+      background: none;
+      border: none;
+      padding: 0;
+      margin: 0;
+      font: inherit;
+      color: inherit;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sort-button.active {
+      color: var(--accent);
+    }
+
+    .sort-indicator {
+      font-size: 0.7rem;
+      color: var(--accent);
+    }
+
     tbody td {
       padding: 8px 6px;
       border-bottom: 1px solid rgba(226, 215, 200, 0.6);
@@ -515,11 +537,11 @@
         <table>
           <thead>
             <tr>
-              <th>Date</th>
-              <th>Device</th>
-              <th>Company</th>
-              <th>Panel</th>
-              <th>Code</th>
+              <th><button class="sort-button" data-sort="date" aria-pressed="false">Date <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" data-sort="device" aria-pressed="false">Device <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" data-sort="company" aria-pressed="false">Company <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" data-sort="panel" aria-pressed="false">Panel <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" data-sort="code" aria-pressed="false">Code <span class="sort-indicator"></span></button></th>
               <th>Submission</th>
             </tr>
           </thead>
@@ -564,6 +586,8 @@
       panel: 'All panels',
       search: '',
       tableLimit: 120,
+      sortKey: 'date',
+      sortDir: 'desc',
     };
 
     const tooltip = document.getElementById('tooltip');
@@ -610,6 +634,7 @@
       tableBody: document.getElementById('table-body'),
       tableCaption: document.getElementById('table-caption'),
       showMore: document.getElementById('show-more'),
+      sortButtons: document.querySelectorAll('.sort-button'),
     };
 
     const formatNumber = (value) => value.toLocaleString('en-US');
@@ -899,8 +924,49 @@
       svg.appendChild(maxLabel);
     };
 
+    const getSortLabel = () => {
+      if (state.sortKey === 'date') {
+        return state.sortDir === 'asc' ? 'Date (oldest first)' : 'Date (newest first)';
+      }
+      const base = {
+        device: 'Device',
+        company: 'Company',
+        panel: 'Panel',
+        code: 'Code',
+      }[state.sortKey] || 'Date';
+      const dir = state.sortDir === 'asc' ? 'A-Z' : 'Z-A';
+      return `${base} (${dir})`;
+    };
+
+    const updateSortButtons = () => {
+      elements.sortButtons.forEach((button) => {
+        const key = button.dataset.sort;
+        const active = key === state.sortKey;
+        button.classList.toggle('active', active);
+        button.setAttribute('aria-pressed', active ? 'true' : 'false');
+        const indicator = button.querySelector('.sort-indicator');
+        if (indicator) {
+          indicator.textContent = active ? (state.sortDir === 'asc' ? '^' : 'v') : '';
+        }
+      });
+    };
+
+    const compareRows = (a, b) => {
+      if (state.sortKey === 'date') {
+        const diff = a.dateObj - b.dateObj;
+        return state.sortDir === 'asc' ? diff : -diff;
+      }
+      const aVal = (a[state.sortKey] || '').toString();
+      const bVal = (b[state.sortKey] || '').toString();
+      const result = aVal.localeCompare(bVal, undefined, { numeric: true, sensitivity: 'base' });
+      if (result !== 0) {
+        return state.sortDir === 'asc' ? result : -result;
+      }
+      return b.dateObj - a.dateObj;
+    };
+
     const renderTable = (items) => {
-      const sorted = [...items].sort((a, b) => b.dateObj - a.dateObj);
+      const sorted = [...items].sort(compareRows);
       const slice = sorted.slice(0, state.tableLimit);
       clearElement(elements.tableBody);
       slice.forEach((item) => {
@@ -934,8 +1000,9 @@
         elements.tableBody.appendChild(row);
       });
 
-      elements.tableCaption.textContent = `${formatNumber(items.length)} approvals in selection. Showing ${formatNumber(slice.length)}.`;
+      elements.tableCaption.textContent = `${formatNumber(items.length)} approvals in selection. Showing ${formatNumber(slice.length)}. Sorted by ${getSortLabel()}. Click a column header to sort.`;
       elements.showMore.style.display = items.length > slice.length ? 'inline-flex' : 'none';
+      updateSortButtons();
     };
 
     const renderMetrics = (items) => {
@@ -1022,6 +1089,8 @@
         state.panel = 'All panels';
         state.search = '';
         state.tableLimit = 120;
+        state.sortKey = 'date';
+        state.sortDir = 'desc';
         syncControls();
         renderAll();
       });
@@ -1029,6 +1098,19 @@
       elements.showMore.addEventListener('click', () => {
         state.tableLimit += 120;
         renderAll();
+      });
+
+      elements.sortButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+          const key = button.dataset.sort;
+          if (state.sortKey === key) {
+            state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc';
+          } else {
+            state.sortKey = key;
+            state.sortDir = key === 'date' ? 'desc' : 'asc';
+          }
+          renderTable(filterData());
+        });
       });
     };
 
