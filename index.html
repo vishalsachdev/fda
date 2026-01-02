@@ -499,11 +499,6 @@
         </div>
         <div id="chart-entrants" class="chart"></div>
       </article>
-      <article class="card fade-up" style="animation-delay: 500ms;">
-        <h2>Panel x product code</h2>
-        <p class="caption">Heatmap of top product codes across top panels (within the selected range).</p>
-        <div id="chart-heatmap" class="chart"></div>
-      </article>
     </section>
 
     <section class="table-section fade-up" style="animation-delay: 580ms;">
@@ -612,7 +607,6 @@
       chartYears: document.getElementById('chart-years'),
       chartPanels: document.getElementById('chart-panels'),
       chartEntrants: document.getElementById('chart-entrants'),
-      chartHeatmap: document.getElementById('chart-heatmap'),
       tableBody: document.getElementById('table-body'),
       tableCaption: document.getElementById('table-caption'),
       showMore: document.getElementById('show-more'),
@@ -905,95 +899,6 @@
       svg.appendChild(maxLabel);
     };
 
-    const lerpColor = (colorA, colorB, t) => {
-      const parse = (hex) => hex.match(/.2/g).map((v) => parseInt(v, 16));
-      const [r1, g1, b1] = parse(colorA);
-      const [r2, g2, b2] = parse(colorB);
-      const r = Math.round(r1 + (r2 - r1) * t);
-      const g = Math.round(g1 + (g2 - g1) * t);
-      const b = Math.round(b1 + (b2 - b1) * t);
-      return `rgb(${r}, ${g}, ${b})`;
-    };
-
-    const drawHeatmap = (items) => {
-      const codeCounts = countBy(items, 'code');
-      const panelCounts = countBy(items, 'panel');
-      const topCodes = Array.from(codeCounts.entries()).sort((a, b) => b[1] - a[1]).slice(0, 12).map(([key]) => key);
-      const topPanels = Array.from(panelCounts.entries()).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([key]) => key);
-
-      const counts = new Map();
-      let maxCount = 0;
-      items.forEach((item) => {
-        if (!topCodes.includes(item.code) || !topPanels.includes(item.panel)) return;
-        const key = `${item.panel}::${item.code}`;
-        const next = (counts.get(key) || 0) + 1;
-        counts.set(key, next);
-        if (next > maxCount) maxCount = next;
-      });
-
-      const cellSize = 24;
-      const left = 110;
-      const top = 24;
-      const width = left + topCodes.length * cellSize + 20;
-      const height = top + topPanels.length * cellSize + 30;
-
-      clearElement(elements.chartHeatmap);
-      const wrapper = document.createElement('div');
-      wrapper.style.overflowX = 'auto';
-      elements.chartHeatmap.appendChild(wrapper);
-      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      svg.setAttribute('width', Math.max(width, elements.chartHeatmap.clientWidth || width));
-      svg.setAttribute('height', height);
-      svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-      wrapper.appendChild(svg);
-
-      topCodes.forEach((code, i) => {
-        const x = left + i * cellSize + cellSize / 2;
-        const label = document.createElementNS(svg.namespaceURI, 'text');
-        label.setAttribute('x', x);
-        label.setAttribute('y', top - 6);
-        label.setAttribute('text-anchor', 'middle');
-        label.setAttribute('font-size', '10');
-        label.setAttribute('fill', 'var(--muted-2)');
-        label.textContent = code;
-        svg.appendChild(label);
-      });
-
-      topPanels.forEach((panel, j) => {
-        const y = top + j * cellSize + cellSize / 2 + 4;
-        const label = document.createElementNS(svg.namespaceURI, 'text');
-        label.setAttribute('x', left - 8);
-        label.setAttribute('y', y);
-        label.setAttribute('text-anchor', 'end');
-        label.setAttribute('font-size', '11');
-        label.setAttribute('fill', 'var(--ink)');
-        label.textContent = panel;
-        svg.appendChild(label);
-      });
-
-      topPanels.forEach((panel, j) => {
-        topCodes.forEach((code, i) => {
-          const x = left + i * cellSize;
-          const y = top + j * cellSize;
-          const key = `${panel}::${code}`;
-          const value = counts.get(key) || 0;
-          const t = maxCount ? value / maxCount : 0;
-          const rect = document.createElementNS(svg.namespaceURI, 'rect');
-          rect.setAttribute('x', x);
-          rect.setAttribute('y', y);
-          rect.setAttribute('width', cellSize - 2);
-          rect.setAttribute('height', cellSize - 2);
-          rect.setAttribute('fill', value ? lerpColor('f5e5c4', '9a2f1f', t) : '#f1e7d6');
-          rect.setAttribute('stroke', 'rgba(29,26,22,0.08)');
-          rect.addEventListener('mousemove', (event) => {
-            showTooltip(event.clientX, event.clientY, `<strong>${panel} x ${code}</strong><br/>${formatNumber(value)} approvals`);
-          });
-          rect.addEventListener('mouseleave', hideTooltip);
-          svg.appendChild(rect);
-        });
-      });
-    };
-
     const renderTable = (items) => {
       const sorted = [...items].sort((a, b) => b.dateObj - a.dateObj);
       const slice = sorted.slice(0, state.tableLimit);
@@ -1065,7 +970,6 @@
       drawYearBars(filteredNoYear);
       drawPanelBars(filtered);
       drawEntrants(filteredNoYear);
-      drawHeatmap(filtered);
     };
 
     const applyFilters = () => {
